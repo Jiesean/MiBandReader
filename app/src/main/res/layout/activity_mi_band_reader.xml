@@ -11,20 +11,20 @@
     tools:context="com.jiesean.mibandreader.MiBandReaderActivity">
 
     <TextView
-        android:text="设备信息"
+        android:text="设备名称"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/textView2"
         android:layout_alignParentTop="true"
-        android:layout_alignStart="@+id/textView3"
-        android:layout_marginTop="22dp" />
+        android:layout_marginTop="10dp"
+        android:layout_alignStart="@+id/textView3" />
 
     <TextView
         android:text="电量"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="30dp"
-        android:layout_marginTop="26dp"
+        android:layout_marginTop="10dp"
         android:id="@+id/textView3"
         android:layout_below="@+id/textView2"
         android:layout_alignParentStart="true" />
@@ -35,7 +35,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/textView3"
         android:layout_alignStart="@+id/textView3"
-        android:layout_marginTop="37dp"
+        android:layout_marginTop="10dp"
         android:id="@+id/textView4" />
 
     <TextView
@@ -64,26 +64,26 @@
         android:text="震动"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
         android:id="@+id/shock_btn"
-        android:layout_below="@+id/textView4"
-        android:layout_alignParentEnd="true" />
+        android:onClick="handleClickEvent"
+        android:layout_below="@+id/scan_btn"
+        android:layout_alignParentStart="true" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="13dp"
         android:id="@+id/diaplay_state_tv"
         android:layout_below="@+id/shock_btn"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentStart="true" />
 
     <Button
         android:text="扫描"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/scan_btn"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true"
-        android:onClick="handleClickEvent"/>
+        android:onClick="handleClickEvent"
+        android:layout_below="@+id/textView4"
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>

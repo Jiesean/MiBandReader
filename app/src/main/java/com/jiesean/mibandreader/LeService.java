@@ -32,7 +32,8 @@ public class LeService extends Service {
     //自定义binder，用于service绑定activity之后为activity提供操作service的接口
     private LocalBinder mBinder = new LocalBinder();
     private Handler mHandler;
-    private int SCAN_PERIOD = 30;//设置扫描时限
+    private Intent intent;
+    private int SCAN_PERIOD = 30000;//设置扫描时限
     private boolean mScanning = false;
 
     //bluetooth
@@ -41,20 +42,19 @@ public class LeService extends Service {
     private BluetoothLeScanner mBluetoothLeScanner;
     private ScanCallback mScanCallback;
     private LeGattCallback mLeGattCallback;
+    private BluetoothGatt mGatt;
 
     //UUID
     //震动char:写入 0x01 或者 0x02 时手环都会震动，01强度弱于 02
-    UUID shockCharUUID = java.util.UUID.fromString("00002a06-0000-1000-8000-00805f9b34fb");
+    UUID shockCharUUID = UUID.fromString("00002a06-0000-1000-8000-00805f9b34fb");
     //计步char:读取该UUID下的value数组 第0 个数据就是 步数
-    UUID stepCharUUID = java.util.UUID.fromString("0000ff06-0000-1000-8000-00805f9b34fb");
+    UUID stepCharUUID = UUID.fromString("0000ff06-0000-1000-8000-00805f9b34fb");
 
     //Characteristic
     BluetoothGattCharacteristic shockChar;
     BluetoothGattCharacteristic stepChar;
     BluetoothGattCharacteristic batteryChar;
 
-    public LeService() {
-    }
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -68,6 +68,8 @@ public class LeService extends Service {
 
         mScanCallback = new LeScanCallback();
         mLeGattCallback = new LeGattCallback();
+
+        mHandler = new Handler();
     }
 
     /**
@@ -76,6 +78,7 @@ public class LeService extends Service {
     public class LocalBinder extends Binder {
         public boolean initBluetooth(){
             Log.d(TAG, "initBluetooth");
+
             //init bluetoothadapter.api 21 above
             mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
             mBluetoothAdapter = mBluetoothManager.getAdapter();
@@ -111,11 +114,26 @@ public class LeService extends Service {
                 @Override
                 public void run() {
                     if (mScanning == true) {
+                        Log.d(TAG, "Stop Scan Time Out");
                         mScanning = false;
                         mBluetoothLeScanner.stopScan(mScanCallback);
+                        notifyUI("state","3");
                     }
                 }
             }, SCAN_PERIOD);
+        }
+
+        /**
+         * @param extent 震动程度，1：表示轻微，2：表示剧烈
+         */
+        public void startShock(int extent){
+            Log.d(TAG, "startLeScan extent: " + extent);
+
+            if (mGatt != null) {
+                byte[] value ={(byte)0x02};
+                shockChar.setValue(value);
+                mGatt.writeCharacteristic(shockChar);
+            }
         }
     }
 
@@ -132,11 +150,15 @@ public class LeService extends Service {
          */
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
-            //Log.d(Tag, "onScanResult");
+
+
             if(result != null){
                 //此处，我们尝试连接MI 设备
+
+                Log.d(TAG, "onScanResult DeviceName : " + result.getDevice().getName() + " DeviceAddress : " + result.getDevice().getAddress());
                 if (result.getDevice().getName() != null && mTargetDeviceName.equals(result.getDevice().getName())) {
                     //扫描到我们想要的设备后，立即停止扫描
+                    mScanning = false;
                     result.getDevice().connectGatt(LeService.this, false, mLeGattCallback);
                     mBluetoothLeScanner.stopScan(mScanCallback);
                 }
@@ -154,13 +176,21 @@ public class LeService extends Service {
          *
          * @param gatt 返回连接建立的gatt对象
          * @param status 返回的是此次gatt操作的结果，成功了返回0
-         * @param newState 每次client连接或断开连接状态变化，STATE_CONNECTED 0，STATE_CONNECTING 1,STATE_DISCONNECTED 2,STATE_DISCONNECTING 3
+         * @param newState 0：断开；2：连接
          */
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             Log.d(TAG, "onConnectionStateChange status:" + status + "  newState:" + newState);
-            if (status == 0) {
+            if (newState == 2) {
                 gatt.discoverServices();
+                mGatt = gatt;
+
+                notifyUI("state", gatt.getDevice().getAddress());
+            }
+            else if(newState == 0){
+                mGatt = null;
+
+                notifyUI("state", "0");
             }
         }
 
@@ -172,25 +202,42 @@ public class LeService extends Service {
          */
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-            Log.d(TAG, "onServicesDiscovered status" + status);
+            Log.d(TAG, "onServicesDiscovered status : " + status);
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 List<BluetoothGattService> services = gatt.getServices();
-                for (final BluetoothGattService bluetoothGattService : services) {
+
+                if (services != null) {
+                    Log.d(TAG, "onServicesDiscovered num: " + services.size());
+                }
+
+                for (BluetoothGattService bluetoothGattService : services) {
+                    Log.d(TAG, "onServicesDiscovered service: " + bluetoothGattService.getUuid());
                     List<BluetoothGattCharacteristic> charc = bluetoothGattService.getCharacteristics();
 
+                    if (services != null) {
+                        Log.d(TAG, "onServicesDiscovered Char num: " + charc.size());
+                    }
+
                     for (BluetoothGattCharacteristic charac : charc) {
-                        if (charac.getUuid() == shockCharUUID) {
+                        if (charac.getUuid().equals(shockCharUUID) ) {
+                            Log.d(TAG, "shockChar found!");
                             //设备 震动特征值
                             shockChar = charac;
-                        } else if (charac.getUuid() == stepCharUUID) {
+                        } else if (charac.getUuid().equals(stepCharUUID)) {
+                            Log.d(TAG, "stepchar found!");
                             //设备 步数
                             stepChar = charac;
-                            gatt.readCharacteristic(stepChar);
+                            boolean result = enableCharacNotification(gatt ,true, charac);
+                            if (result){
+                                notifyUI("state","4");
+                            }
                         } else if (charac.getUuid().toString().equals("")) {
+                            Log.d(TAG, "bettrychar found!");
                             //设备 电量特征值
                         }
                     }
                 }
+
 
             }
         }
@@ -203,7 +250,9 @@ public class LeService extends Service {
          */
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            Log.d(TAG, "onCharacteristicChanged");
+            Log.d(TAG, "onCharacteristicChanged UUID : " + characteristic.getUuid());
+            String step = characteristic.getValue()[0]+"";
+            notifyUI("step",step);
         }
 
         /**
@@ -215,7 +264,7 @@ public class LeService extends Service {
          */
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            Log.d(TAG, "onCharacteristicWrite");
+            Log.d(TAG, "onCharacteristicWrite UUID: " + characteristic.getUuid() + "state : " + status);
         }
 
         /**
@@ -228,9 +277,6 @@ public class LeService extends Service {
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             Log.d(TAG, "onCharacteristicRead");
-            if (stepChar == characteristic) {
-                System.out.println("走了" + stepChar.getValue()[0]);
-            }
         }
 
         /**
@@ -244,8 +290,32 @@ public class LeService extends Service {
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             Log.d(TAG, "onDescriptorWrite");
         }
+    }
 
-    };
+    private void notifyUI(String type, String data){
+        intent = new Intent();
+        intent.setAction(type);
+        intent.putExtra(type, data);
+        sendBroadcast(intent);
+    }
+
+    private boolean enableCharacNotification(BluetoothGatt gatt,boolean enable, BluetoothGattCharacteristic characteristic){
+        Log.d(TAG,"enableCharacNotification char : " + characteristic);
+
+        if (gatt == null ||characteristic == null)
+            return false;
+        if (!gatt.setCharacteristicNotification(characteristic, enable))
+            return false;
+            BluetoothGattDescriptor clientConfig = characteristic.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));
+        if (clientConfig == null)
+            return false;
+        if (enable) {
+            clientConfig.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+        } else {
+            clientConfig.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
+        }
+        return gatt.writeDescriptor(clientConfig);
+    }
 
 
 }
