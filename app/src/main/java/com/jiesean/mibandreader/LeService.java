@@ -14,13 +14,19 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.Intent;
+import android.icu.text.LocaleDisplayNames;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
+import android.util.StringBuilderPrinter;
 
+import com.jiesean.mibandreader.model.BatteryInfoParser;
+import com.jiesean.mibandreader.model.Profile;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,14 +50,9 @@ public class LeService extends Service {
     private LeGattCallback mLeGattCallback;
     private BluetoothGatt mGatt;
 
-    //UUID
-    //震动char:写入 0x01 或者 0x02 时手环都会震动，01强度弱于 02
-    UUID shockCharUUID = UUID.fromString("00002a06-0000-1000-8000-00805f9b34fb");
-    //计步char:读取该UUID下的value数组 第0 个数据就是 步数
-    UUID stepCharUUID = UUID.fromString("0000ff06-0000-1000-8000-00805f9b34fb");
 
     //Characteristic
-    BluetoothGattCharacteristic shockChar;
+    BluetoothGattCharacteristic alertChar;
     BluetoothGattCharacteristic stepChar;
     BluetoothGattCharacteristic batteryChar;
 
@@ -126,13 +127,13 @@ public class LeService extends Service {
         /**
          * @param extent 震动程度，1：表示轻微，2：表示剧烈
          */
-        public void startShock(int extent){
+        public void startAlert(int extent){
             Log.d(TAG, "startLeScan extent: " + extent);
 
             if (mGatt != null) {
                 byte[] value ={(byte)0x02};
-                shockChar.setValue(value);
-                mGatt.writeCharacteristic(shockChar);
+                alertChar.setValue(value);
+                mGatt.writeCharacteristic(alertChar);
             }
         }
     }
@@ -171,13 +172,6 @@ public class LeService extends Service {
      */
     private class LeGattCallback extends BluetoothGattCallback {
 
-        /**
-         * Callback indicating when GATT client has connected/disconnected to/from a remote GATT server
-         *
-         * @param gatt 返回连接建立的gatt对象
-         * @param status 返回的是此次gatt操作的结果，成功了返回0
-         * @param newState 0：断开；2：连接
-         */
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             Log.d(TAG, "onConnectionStateChange status:" + status + "  newState:" + newState);
@@ -214,16 +208,17 @@ public class LeService extends Service {
                     Log.d(TAG, "onServicesDiscovered service: " + bluetoothGattService.getUuid());
                     List<BluetoothGattCharacteristic> charc = bluetoothGattService.getCharacteristics();
 
-                    if (services != null) {
-                        Log.d(TAG, "onServicesDiscovered Char num: " + charc.size());
-                    }
-
                     for (BluetoothGattCharacteristic charac : charc) {
-                        if (charac.getUuid().equals(shockCharUUID) ) {
-                            Log.d(TAG, "shockChar found!");
+                        if (charac.getUuid().equals(Profile.IMMIDATE_ALERT_CHAR_UUID) ) {
+                            Log.d(TAG, "alertChar found!");
                             //设备 震动特征值
-                            shockChar = charac;
-                        } else if (charac.getUuid().equals(stepCharUUID)) {
+                            alertChar = charac;
+
+                            byte[] value ={(byte)0x02};
+                            alertChar.setValue(value);
+                            mGatt.writeCharacteristic(alertChar);
+                        }
+                        if (charac.getUuid().equals(Profile.STEP_CHAR_UUID)) {
                             Log.d(TAG, "stepchar found!");
                             //设备 步数
                             stepChar = charac;
@@ -231,9 +226,12 @@ public class LeService extends Service {
                             if (result){
                                 notifyUI("state","4");
                             }
-                        } else if (charac.getUuid().toString().equals("")) {
-                            Log.d(TAG, "bettrychar found!");
+                        }
+                        if (charac.getUuid().equals(Profile.BATTERY_CHAR_UUID)) {
+                            Log.d(TAG, "batterychar found!");
                             //设备 电量特征值
+                            batteryChar = charac;
+                            gatt.readCharacteristic(charac);
                         }
                     }
                 }
@@ -251,8 +249,18 @@ public class LeService extends Service {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             Log.d(TAG, "onCharacteristicChanged UUID : " + characteristic.getUuid());
-            String step = characteristic.getValue()[0]+"";
-            notifyUI("step",step);
+//            String step = Integer.toHexString(characteristic.getValue()[0]);
+            onNotify(characteristic.getValue());
+//            int stepNum = characteristic.getValue()[0];
+
+        }
+
+        public void onNotify(byte[] data) {
+            Log.d(TAG, Arrays.toString(data));
+            if (data.length == 4) {
+                int stepNum = data[3] << 24 | (data[2] & 0xFF) << 16 | (data[1] & 0xFF) << 8 | (data[0] & 0xFF);
+                notifyUI("step",stepNum + "");
+            }
         }
 
         /**
@@ -276,7 +284,11 @@ public class LeService extends Service {
          */
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            Log.d(TAG, "onCharacteristicRead");
+            Log.d(TAG, "onCharacteristicRead UUID : " + characteristic.getUuid());
+
+            if (characteristic.getUuid().equals(Profile.BATTERY_CHAR_UUID)) {
+                BatteryInfoParser parser = new BatteryInfoParser(characteristic.getValue());
+            }
         }
 
         /**
@@ -289,6 +301,8 @@ public class LeService extends Service {
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             Log.d(TAG, "onDescriptorWrite");
+            gatt.readCharacteristic(batteryChar);
+
         }
     }
 
@@ -306,7 +320,7 @@ public class LeService extends Service {
             return false;
         if (!gatt.setCharacteristicNotification(characteristic, enable))
             return false;
-            BluetoothGattDescriptor clientConfig = characteristic.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));
+            BluetoothGattDescriptor clientConfig = characteristic.getDescriptor(Profile.notificationDesUUID);
         if (clientConfig == null)
             return false;
         if (enable) {
@@ -316,6 +330,5 @@ public class LeService extends Service {
         }
         return gatt.writeDescriptor(clientConfig);
     }
-
 
 }

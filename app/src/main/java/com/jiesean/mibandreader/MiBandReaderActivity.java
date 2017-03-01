@@ -41,8 +41,8 @@ public class MiBandReaderActivity extends AppCompatActivity {
                 }
             }
             else if (intent.getAction().equals("step")){
+//                mStepTV.setText(Integer.parseInt(intent.getStringExtra("step"), 16));
                 mStepTV.setText(intent.getStringExtra("step"));
-//                System.out.println(intent.getStringExtra("step"));
             }
             else if (intent.getAction().equals("bettry")){
 
@@ -106,7 +106,7 @@ public class MiBandReaderActivity extends AppCompatActivity {
             mService.startLeScan();
         }
         if (view.getId() == R.id.shock_btn) {
-            mService.startShock(2);
+            mService.startAlert(2);
         }
     }
 
