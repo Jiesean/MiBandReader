@@ -160,7 +160,7 @@ public class LeService extends Service {
                 if (result.getDevice().getName() != null && mTargetDeviceName.equals(result.getDevice().getName())) {
                     //扫描到我们想要的设备后，立即停止扫描
                     mScanning = false;
-                    result.getDevice().connectGatt(LeService.this, false, mLeGattCallback);
+                    result.getDevice().connectGatt(LeService.this, true, mLeGattCallback);
                     mBluetoothLeScanner.stopScan(mScanCallback);
                 }
             }
@@ -288,6 +288,7 @@ public class LeService extends Service {
 
             if (characteristic.getUuid().equals(Profile.BATTERY_CHAR_UUID)) {
                 BatteryInfoParser parser = new BatteryInfoParser(characteristic.getValue());
+                notifyUI("battery", parser.getLevel() + "");
             }
         }
 

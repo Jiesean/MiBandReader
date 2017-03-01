@@ -11,7 +11,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
+
+import static com.jiesean.mibandreader.R.id.bettery_info_tv;
 
 public class MiBandReaderActivity extends AppCompatActivity {
 
@@ -19,6 +22,10 @@ public class MiBandReaderActivity extends AppCompatActivity {
 
     private TextView mDisplayStateTV ;
     private TextView mStepTV;
+    private TextView mDeviceInfoTV;
+    private TextView mBatteryInfoTV;
+    private Button mAlertBtn;
+    private Button mScanBtn;
 
     BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -26,26 +33,28 @@ public class MiBandReaderActivity extends AppCompatActivity {
             Log.d(TAG, "BroadcastReceiver onReceive");
 
             if (intent.getAction().equals("state")) {
-                if(intent.getStringExtra("state").equals("0")){
+                if(intent.getStringExtra("state").equals("0")){//断开连接
                     mDisplayStateTV.append("断开连接\n");
+                    updateConnectionStateUI(false);
                 }
-                else if (intent.getStringExtra("state").equals("3")) {
+                else if (intent.getStringExtra("state").equals("3")) {//扫描超时
                     mDisplayStateTV.append("扫描超时，重新扫描\n");
                 }
-                else if (intent.getStringExtra("state").equals("4")) {
+                else if (intent.getStringExtra("state").equals("4")) {//开启实时计步通知
                     mDisplayStateTV.append("开始计步\n");
                 }
                 else{
                     String deviceAddress = intent.getStringExtra("state");
                     mDisplayStateTV.append("连接上设备地址： " + deviceAddress + "\n");
+                    updateConnectionStateUI(true);
                 }
             }
             else if (intent.getAction().equals("step")){
 //                mStepTV.setText(Integer.parseInt(intent.getStringExtra("step"), 16));
                 mStepTV.setText(intent.getStringExtra("step"));
             }
-            else if (intent.getAction().equals("bettry")){
-
+            else if (intent.getAction().equals("battery")){
+                mBatteryInfoTV.setText(intent.getStringExtra("battery"));
             }
 
             if(intent.getStringExtra("ConnectionState") != null){
@@ -82,6 +91,11 @@ public class MiBandReaderActivity extends AppCompatActivity {
 
         mDisplayStateTV = (TextView) findViewById(R.id.diaplay_state_tv);
         mStepTV = (TextView) findViewById(R.id.step_info_tv);
+        mDeviceInfoTV = (TextView) findViewById(R.id.device_info_tv);
+        mBatteryInfoTV = (TextView) findViewById(R.id.bettery_info_tv);
+        mAlertBtn = (Button) findViewById(R.id.shock_btn);
+        mAlertBtn.setEnabled(false);
+        mScanBtn = (Button) findViewById(R.id.scan_btn);
 
         //开启蓝牙连接的服务
         Intent serviceIntent = new Intent(MiBandReaderActivity.this, LeService.class);
@@ -127,8 +141,20 @@ public class MiBandReaderActivity extends AppCompatActivity {
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("state");
         intentFilter.addAction("step");
-        intentFilter.addAction("bettry");
-//        intentFilter.addAction("state");
+        intentFilter.addAction("battery");
         return intentFilter;
+    }
+
+    private void updateConnectionStateUI(boolean enable){
+
+        String deviceName = enable?("MI"):("未连接");
+        mDeviceInfoTV.setText(deviceName);
+
+        mBatteryInfoTV.setText("");
+        mStepTV.setText("");
+        mAlertBtn.setEnabled(enable);
+        mScanBtn.setEnabled(!enable);
+
+
     }
 }
