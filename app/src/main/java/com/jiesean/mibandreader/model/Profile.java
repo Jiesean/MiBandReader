@@ -23,6 +23,8 @@ public class Profile {
     public static final UUID BATTERY_CHAR_UUID = UUID.fromString("0000ff0c-0000-1000-8000-00805f9b34fb");
     //用户信息char
     public static final UUID USER_INFO_CHAR_UUID = UUID.fromString("0000ff04-0000-1000-8000-00805f9b34fb");
+    //控制点char
+    public static final UUID CONTROL_POINT_CHAR_UUID = UUID.fromString("0000ff05-0000-1000-8000-00805f9b34fb");
 
     //Descriptor
     //setNotification Descriptor UUID
