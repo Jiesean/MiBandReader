@@ -25,6 +25,7 @@ import android.util.StringBuilderPrinter;
 
 import com.jiesean.mibandreader.model.BatteryInfoParser;
 import com.jiesean.mibandreader.model.Profile;
+import com.jiesean.mibandreader.model.StepParser;
 
 import java.util.Arrays;
 import java.util.List;
@@ -41,6 +42,7 @@ public class LeService extends Service {
     private Intent intent;
     private int SCAN_PERIOD = 30000;//设置扫描时限
     private boolean mScanning = false;
+    private int mColorIndex = 0;
 
     //bluetooth
     private BluetoothManager mBluetoothManager;
@@ -55,6 +57,8 @@ public class LeService extends Service {
     BluetoothGattCharacteristic alertChar;
     BluetoothGattCharacteristic stepChar;
     BluetoothGattCharacteristic batteryChar;
+    BluetoothGattCharacteristic controlPointChar;
+    BluetoothGattCharacteristic vibrationChar;
 
 
     @Override
@@ -124,17 +128,21 @@ public class LeService extends Service {
             }, SCAN_PERIOD);
         }
 
-        /**
-         * @param extent 震动程度，1：表示轻微，2：表示剧烈
-         */
         public void startAlert(int extent){
             Log.d(TAG, "startLeScan extent: " + extent);
 
             if (mGatt != null) {
                 byte[] value ={(byte)0x02};
-                alertChar.setValue(value);
-                mGatt.writeCharacteristic(alertChar);
+                writeCharacteristic(alertChar, value);
             }
+        }
+
+        public void vibrateWithDifferentColorLed(){
+            Log.d(TAG, "vibrateWithDifferentColorLed : " + mColorIndex%4);
+
+            writeCharacteristic(controlPointChar, Profile.LED_COLOR[mColorIndex%4]);
+            writeCharacteristic(controlPointChar, Profile.SET_LED_ORANGE);
+            mColorIndex ++;
         }
     }
 
@@ -233,10 +241,19 @@ public class LeService extends Service {
                             batteryChar = charac;
                             gatt.readCharacteristic(charac);
                         }
+                        if (charac.getUuid().equals(Profile.CONTROL_POINT_CHAR_UUID)) {
+                            Log.d(TAG, "control point found!");
+                            //LED颜色
+                            controlPointChar = charac;
+                        }
+                        if (charac.getUuid().equals(Profile.VIBRATION_CHAR_UUID)) {
+                            Log.d(TAG, "vibration found!");
+                            //震动
+                            vibrationChar = charac;
+                        }
+
                     }
                 }
-
-
             }
         }
 
@@ -249,18 +266,10 @@ public class LeService extends Service {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             Log.d(TAG, "onCharacteristicChanged UUID : " + characteristic.getUuid());
-//            String step = Integer.toHexString(characteristic.getValue()[0]);
-            onNotify(characteristic.getValue());
-//            int stepNum = characteristic.getValue()[0];
 
-        }
+            StepParser parser = new StepParser(characteristic.getValue());
+            notifyUI("step", parser.getStepNum() + "");
 
-        public void onNotify(byte[] data) {
-            Log.d(TAG, Arrays.toString(data));
-            if (data.length == 4) {
-                int stepNum = data[3] << 24 | (data[2] & 0xFF) << 16 | (data[1] & 0xFF) << 8 | (data[0] & 0xFF);
-                notifyUI("step",stepNum + "");
-            }
         }
 
         /**
@@ -273,6 +282,12 @@ public class LeService extends Service {
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             Log.d(TAG, "onCharacteristicWrite UUID: " + characteristic.getUuid() + "state : " + status);
+
+            if (characteristic == controlPointChar) {
+                writeCharacteristic(vibrationChar, Profile.VIBRATE_MODE[mColorIndex%2]);
+
+                Log.d(TAG,"Vibrate Mode : " + mColorIndex%2);
+            }
         }
 
         /**
@@ -289,6 +304,7 @@ public class LeService extends Service {
             if (characteristic.getUuid().equals(Profile.BATTERY_CHAR_UUID)) {
                 BatteryInfoParser parser = new BatteryInfoParser(characteristic.getValue());
                 notifyUI("battery", parser.getLevel() + "");
+
             }
         }
 
@@ -330,6 +346,12 @@ public class LeService extends Service {
             clientConfig.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
         }
         return gatt.writeDescriptor(clientConfig);
+    }
+
+    private void writeCharacteristic(BluetoothGattCharacteristic characteristic,byte[] command){
+        characteristic.setValue(command);
+        mGatt.writeCharacteristic(characteristic);
+
     }
 
 }

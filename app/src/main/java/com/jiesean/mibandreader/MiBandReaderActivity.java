@@ -26,6 +26,7 @@ public class MiBandReaderActivity extends AppCompatActivity {
     private TextView mBatteryInfoTV;
     private Button mAlertBtn;
     private Button mScanBtn;
+    private Button mVibrate;
 
     BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -96,6 +97,8 @@ public class MiBandReaderActivity extends AppCompatActivity {
         mAlertBtn = (Button) findViewById(R.id.shock_btn);
         mAlertBtn.setEnabled(false);
         mScanBtn = (Button) findViewById(R.id.scan_btn);
+        mVibrate = (Button) findViewById(R.id.led_btn);
+        mVibrate.setEnabled(false);
 
         //开启蓝牙连接的服务
         Intent serviceIntent = new Intent(MiBandReaderActivity.this, LeService.class);
@@ -120,8 +123,12 @@ public class MiBandReaderActivity extends AppCompatActivity {
             mService.startLeScan();
         }
         if (view.getId() == R.id.shock_btn) {
-            mService.startAlert(2);
+            mService.startAlert(1);
         }
+        if (view.getId() == R.id.led_btn) {
+            mService.vibrateWithDifferentColorLed();
+        }
+
     }
 
     private void initBluetooth(){
@@ -154,7 +161,6 @@ public class MiBandReaderActivity extends AppCompatActivity {
         mStepTV.setText("");
         mAlertBtn.setEnabled(enable);
         mScanBtn.setEnabled(!enable);
-
-
+        mVibrate.setEnabled(enable);
     }
 }

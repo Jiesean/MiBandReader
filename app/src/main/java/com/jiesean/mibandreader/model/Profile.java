@@ -25,9 +25,22 @@ public class Profile {
     public static final UUID USER_INFO_CHAR_UUID = UUID.fromString("0000ff04-0000-1000-8000-00805f9b34fb");
     //控制点char
     public static final UUID CONTROL_POINT_CHAR_UUID = UUID.fromString("0000ff05-0000-1000-8000-00805f9b34fb");
+    //震动
+    public static final UUID VIBRATION_CHAR_UUID = UUID.fromString("00002a06-0000-1000-8000-00805f9b34fb");
 
     //Descriptor
     //setNotification Descriptor UUID
     public static final UUID notificationDesUUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+
+    public static final byte[] SET_LED_RED = {14, 6, 1, 2, 1};
+    public static final byte[] SET_LED_BLUE = {14, 0, 6, 6, 1};
+    public static final byte[] SET_LED_ORANGE = {14, 6, 2, 0, 1};
+    public static final byte[] SET_LED_GREEN = {14, 4, 5, 0, 1};
+    public static final byte[][] LED_COLOR = {SET_LED_RED, SET_LED_BLUE, SET_LED_ORANGE, SET_LED_GREEN};
+
+    //vibrate mode
+    public static final byte[] VIBRATION_WITH_LED = {1}; //0x00和0x03都是震动两下，伴随着LED
+    public static final byte[] VIBRATION_WITHOUT_LED = {4};//震动两下，无LED
+    public static final byte[][] VIBRATE_MODE = {VIBRATION_WITH_LED, VIBRATION_WITHOUT_LED };
 
 }
