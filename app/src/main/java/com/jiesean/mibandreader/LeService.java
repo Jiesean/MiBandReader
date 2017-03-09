@@ -222,9 +222,10 @@ public class LeService extends Service {
                             //设备 震动特征值
                             alertChar = charac;
 
-                            byte[] value ={(byte)0x02};
-                            alertChar.setValue(value);
-                            mGatt.writeCharacteristic(alertChar);
+//                            byte[] value ={(byte)0x02};
+//                            alertChar.setValue(value);
+//                            boolean result = mGatt.writeCharacteristic(alertChar);
+//                            System.out.println("**********" + result);
                         }
                         if (charac.getUuid().equals(Profile.STEP_CHAR_UUID)) {
                             Log.d(TAG, "stepchar found!");
@@ -234,12 +235,9 @@ public class LeService extends Service {
                             if (result){
                                 notifyUI("state","4");
                             }
-                        }
-                        if (charac.getUuid().equals(Profile.BATTERY_CHAR_UUID)) {
-                            Log.d(TAG, "batterychar found!");
                             //设备 电量特征值
                             batteryChar = charac;
-                            gatt.readCharacteristic(charac);
+
                         }
                         if (charac.getUuid().equals(Profile.CONTROL_POINT_CHAR_UUID)) {
                             Log.d(TAG, "control point found!");
