@@ -3,6 +3,7 @@ package com.jiesean.mibandreader;
 import android.annotation.TargetApi;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -14,22 +15,18 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.Intent;
-import android.icu.text.LocaleDisplayNames;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
-import android.util.StringBuilderPrinter;
 
 import com.jiesean.mibandreader.model.BatteryInfoParser;
 import com.jiesean.mibandreader.model.Profile;
 import com.jiesean.mibandreader.model.StepParser;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 public class LeService extends Service {
 
@@ -51,7 +48,7 @@ public class LeService extends Service {
     private ScanCallback mScanCallback;
     private LeGattCallback mLeGattCallback;
     private BluetoothGatt mGatt;
-
+    private BluetoothDevice mTarget;
 
     //Characteristic
     BluetoothGattCharacteristic alertChar;
@@ -59,7 +56,6 @@ public class LeService extends Service {
     BluetoothGattCharacteristic batteryChar;
     BluetoothGattCharacteristic controlPointChar;
     BluetoothGattCharacteristic vibrationChar;
-
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -128,8 +124,8 @@ public class LeService extends Service {
             }, SCAN_PERIOD);
         }
 
-        public void startAlert(int extent){
-            Log.d(TAG, "startLeScan extent: " + extent);
+        public void startAlert(){
+            Log.d(TAG, "startLeScan extent: " );
 
             if (mGatt != null) {
                 byte[] value ={(byte)0x02};
@@ -137,12 +133,30 @@ public class LeService extends Service {
             }
         }
 
-        public void vibrateWithDifferentColorLed(){
-            Log.d(TAG, "vibrateWithDifferentColorLed : " + mColorIndex%4);
+        public void vibrateWithoutLed(){
+            Log.d(TAG, "vibrateWithoutLed : " );
 
-            writeCharacteristic(controlPointChar, Profile.LED_COLOR[mColorIndex%4]);
-            writeCharacteristic(controlPointChar, Profile.SET_LED_ORANGE);
-            mColorIndex ++;
+        }
+
+        public void vibrateWithLed(){
+            Log.d(TAG, "vibrateWithLed : " );
+
+        }
+
+        public int bondTarget() {
+            boolean result = false;
+            if (mTarget != null) {
+                result = mTarget.createBond();
+            }
+            return (result ? 0 : -1);
+        }
+
+        public int connectToGatt() {
+            if (!mBluetoothAdapter.getBondedDevices().contains(mTarget)) {
+                return -1;
+            }
+            mTarget.connectGatt(LeService.this, true, mLeGattCallback);
+            return 0;
         }
     }
 
@@ -168,7 +182,8 @@ public class LeService extends Service {
                 if (result.getDevice().getName() != null && mTargetDeviceName.equals(result.getDevice().getName())) {
                     //扫描到我们想要的设备后，立即停止扫描
                     mScanning = false;
-                    result.getDevice().connectGatt(LeService.this, true, mLeGattCallback);
+                    mTarget = result.getDevice();
+//                    result.getDevice().connectGatt(LeService.this, true, mLeGattCallback);
                     mBluetoothLeScanner.stopScan(mScanCallback);
                 }
             }
@@ -196,12 +211,6 @@ public class LeService extends Service {
             }
         }
 
-        /**
-         * Callback invoked when the list of remote services, characteristics and descriptors for the remote device have been updated, ie new services have been discovered.
-         *
-         * @param gatt 返回的是本次连接的gatt对象
-         * @param status
-         */
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             Log.d(TAG, "onServicesDiscovered status : " + status);
@@ -221,11 +230,6 @@ public class LeService extends Service {
                             Log.d(TAG, "alertChar found!");
                             //设备 震动特征值
                             alertChar = charac;
-
-//                            byte[] value ={(byte)0x02};
-//                            alertChar.setValue(value);
-//                            boolean result = mGatt.writeCharacteristic(alertChar);
-//                            System.out.println("**********" + result);
                         }
                         if (charac.getUuid().equals(Profile.STEP_CHAR_UUID)) {
                             Log.d(TAG, "stepchar found!");
@@ -237,7 +241,6 @@ public class LeService extends Service {
                             }
                             //设备 电量特征值
                             batteryChar = charac;
-
                         }
                         if (charac.getUuid().equals(Profile.CONTROL_POINT_CHAR_UUID)) {
                             Log.d(TAG, "control point found!");
@@ -255,12 +258,6 @@ public class LeService extends Service {
             }
         }
 
-        /**
-         * Callback triggered as a result of a remote characteristic notification.
-         *
-         * @param gatt
-         * @param characteristic
-         */
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             Log.d(TAG, "onCharacteristicChanged UUID : " + characteristic.getUuid());
@@ -270,13 +267,6 @@ public class LeService extends Service {
 
         }
 
-        /**
-         * Callback indicating the result of a characteristic write operation.
-         *
-         * @param gatt
-         * @param characteristic
-         * @param status
-         */
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             Log.d(TAG, "onCharacteristicWrite UUID: " + characteristic.getUuid() + "state : " + status);
@@ -288,13 +278,6 @@ public class LeService extends Service {
             }
         }
 
-        /**
-         *Callback reporting the result of a characteristic read operation.
-         *
-         * @param gatt
-         * @param characteristic
-         * @param status
-         */
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             Log.d(TAG, "onCharacteristicRead UUID : " + characteristic.getUuid());
@@ -306,13 +289,6 @@ public class LeService extends Service {
             }
         }
 
-        /**
-         * Callback indicating the result of a descriptor write operation.
-         *
-         * @param gatt
-         * @param descriptor
-         * @param status
-         */
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             Log.d(TAG, "onDescriptorWrite");

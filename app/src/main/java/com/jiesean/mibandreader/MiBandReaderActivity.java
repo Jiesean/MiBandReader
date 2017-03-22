@@ -14,8 +14,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import static com.jiesean.mibandreader.R.id.bettery_info_tv;
-
 public class MiBandReaderActivity extends AppCompatActivity {
 
     private String TAG = "MiBandReaderActivity";
@@ -26,7 +24,10 @@ public class MiBandReaderActivity extends AppCompatActivity {
     private TextView mBatteryInfoTV;
     private Button mAlertBtn;
     private Button mScanBtn;
-    private Button mVibrate;
+    private Button mVibrateBtn;
+    private Button mBondBtn;
+    private Button mVibrateLedBtn;
+    private Button mConnectBtn;
 
     BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -51,7 +52,6 @@ public class MiBandReaderActivity extends AppCompatActivity {
                 }
             }
             else if (intent.getAction().equals("step")){
-//                mStepTV.setText(Integer.parseInt(intent.getStringExtra("step"), 16));
                 mStepTV.setText(intent.getStringExtra("step"));
             }
             else if (intent.getAction().equals("battery")){
@@ -94,11 +94,17 @@ public class MiBandReaderActivity extends AppCompatActivity {
         mStepTV = (TextView) findViewById(R.id.step_info_tv);
         mDeviceInfoTV = (TextView) findViewById(R.id.device_info_tv);
         mBatteryInfoTV = (TextView) findViewById(R.id.bettery_info_tv);
-        mAlertBtn = (Button) findViewById(R.id.shock_btn);
+        mAlertBtn = (Button) findViewById(R.id.alert_btn);
         mAlertBtn.setEnabled(false);
         mScanBtn = (Button) findViewById(R.id.scan_btn);
-        mVibrate = (Button) findViewById(R.id.led_btn);
-        mVibrate.setEnabled(false);
+        mVibrateLedBtn = (Button) findViewById(R.id.vibrate_led_btn);
+        mVibrateLedBtn.setEnabled(false);
+        mBondBtn = (Button) findViewById(R.id.bond_btn);
+        mBondBtn.setEnabled(false);
+        mVibrateBtn = (Button) findViewById(R.id.vibrate_btn);
+        mVibrateBtn.setEnabled(false);
+        mConnectBtn = (Button) findViewById(R.id.connect_btn);
+        mConnectBtn.setEnabled(false);
 
         //开启蓝牙连接的服务
         Intent serviceIntent = new Intent(MiBandReaderActivity.this, LeService.class);
@@ -122,12 +128,22 @@ public class MiBandReaderActivity extends AppCompatActivity {
         if (view.getId() == R.id.scan_btn) {
             mService.startLeScan();
         }
-        if (view.getId() == R.id.shock_btn) {
-            mService.startAlert(1);
+        if (view.getId() == R.id.alert_btn) {
+            mService.startAlert();
         }
-        if (view.getId() == R.id.led_btn) {
-            mService.vibrateWithDifferentColorLed();
+        if (view.getId() == R.id.bond_btn) {
+            mService.bondTarget();
         }
+        if (view.getId() == R.id.vibrate_btn) {
+            mService.vibrateWithoutLed();
+        }
+        if (view.getId() == R.id.bond_btn) {
+            mService.vibrateWithLed();
+        }
+        if (view.getId() == R.id.connect_btn) {
+            mService.connectToGatt();
+        }
+
 
     }
 
@@ -161,6 +177,8 @@ public class MiBandReaderActivity extends AppCompatActivity {
         mStepTV.setText("");
         mAlertBtn.setEnabled(enable);
         mScanBtn.setEnabled(!enable);
-        mVibrate.setEnabled(enable);
+        mVibrateBtn.setEnabled(enable);
+        mVibrateLedBtn.setEnabled(enable);
+        mConnectBtn.setEnabled(enable);
     }
 }
