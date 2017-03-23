@@ -29,6 +29,7 @@ public class MiBandReaderActivity extends AppCompatActivity {
     private Button mBondBtn;
     private Button mVibrateLedBtn;
     private Button mConnectBtn;
+    private Intent serviceIntent;
 
     BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -115,7 +116,7 @@ public class MiBandReaderActivity extends AppCompatActivity {
         mConnectBtn.setEnabled(false);
 
         //开启蓝牙连接的服务
-        Intent serviceIntent = new Intent(MiBandReaderActivity.this, LeService.class);
+        serviceIntent = new Intent(MiBandReaderActivity.this, LeService.class);
         bindService(serviceIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
     }
@@ -130,6 +131,11 @@ public class MiBandReaderActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         registerReceiver(mReceiver, makeGattUpdateIntentFilter());
+    }
+
+    @Override
+    protected void onDestroy() {
+        unbindService(mServiceConnection);
     }
 
     public void handleClickEvent(View view){
@@ -190,8 +196,8 @@ public class MiBandReaderActivity extends AppCompatActivity {
         String deviceName = enable?("MI"):("未连接");
         mDeviceInfoTV.setText(deviceName);
 
-        mBatteryInfoTV.setText("");
-        mStepTV.setText("");
+        mBatteryInfoTV.setText("0");
+        mStepTV.setText("0");
         mAlertBtn.setEnabled(enable);
         mScanBtn.setEnabled(!enable);
         mVibrateBtn.setEnabled(enable);
