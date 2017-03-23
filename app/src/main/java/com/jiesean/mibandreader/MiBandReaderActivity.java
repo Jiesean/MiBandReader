@@ -1,5 +1,6 @@
 package com.jiesean.mibandreader;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -35,9 +36,14 @@ public class MiBandReaderActivity extends AppCompatActivity {
             Log.d(TAG, "BroadcastReceiver onReceive");
 
             if (intent.getAction().equals("state")) {
+
                 if(intent.getStringExtra("state").equals("0")){//断开连接
                     mDisplayStateTV.append("断开连接\n");
                     updateConnectionStateUI(false);
+                }
+                if(intent.getStringExtra("state").equals("1")){//连接成功
+                    mDisplayStateTV.append("连接到目标设备\n");
+                    updateConnectionStateUI(true);
                 }
                 else if (intent.getStringExtra("state").equals("3")) {//扫描超时
                     mDisplayStateTV.append("扫描超时，重新扫描\n");
@@ -47,8 +53,8 @@ public class MiBandReaderActivity extends AppCompatActivity {
                 }
                 else{
                     String deviceAddress = intent.getStringExtra("state");
-                    mDisplayStateTV.append("连接上设备地址： " + deviceAddress + "\n");
-                    updateConnectionStateUI(true);
+                    mDisplayStateTV.append("扫描到目标设备： " + deviceAddress + "\n");
+                    mBondBtn.setEnabled(true);
                 }
             }
             else if (intent.getAction().equals("step")){
@@ -57,9 +63,9 @@ public class MiBandReaderActivity extends AppCompatActivity {
             else if (intent.getAction().equals("battery")){
                 mBatteryInfoTV.setText(intent.getStringExtra("battery"));
             }
-
-            if(intent.getStringExtra("ConnectionState") != null){
-
+            else if(intent.getAction().equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)){
+                mDisplayStateTV.append("绑定目标设备 "+"\n");
+                mConnectBtn.setEnabled(true);
             }
         }
     };
@@ -155,7 +161,7 @@ public class MiBandReaderActivity extends AppCompatActivity {
         }else{
             boolean leScannerState = mService.initLeScanner();
             if (leScannerState == true) {
-                mDisplayStateTV.setText("LeScanner已就绪！\n");
+                mDisplayStateTV.setText("蓝牙已就绪！\n");
             }
         }
     }
@@ -165,6 +171,7 @@ public class MiBandReaderActivity extends AppCompatActivity {
         intentFilter.addAction("state");
         intentFilter.addAction("step");
         intentFilter.addAction("battery");
+        intentFilter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         return intentFilter;
     }
 

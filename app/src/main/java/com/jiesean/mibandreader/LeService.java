@@ -136,19 +136,27 @@ public class LeService extends Service {
         public void vibrateWithoutLed(){
             Log.d(TAG, "vibrateWithoutLed : " );
 
+            writeCharacteristic(alertChar, Profile.VIBRATION_WITH_LED);
+
         }
 
         public void vibrateWithLed(){
             Log.d(TAG, "vibrateWithLed : " );
 
+            writeCharacteristic(alertChar, Profile.VIBRATION_WITH_LED);
         }
 
         public int bondTarget() {
-            boolean result = false;
-            if (mTarget != null) {
+            if (mTarget == null) {
+                return -1;
+            }else{
+                boolean result = mBluetoothAdapter.getBondedDevices().contains(mTarget);
+                if (result == true) {
+                    return 1;// 已经绑定
+                }
                 result = mTarget.createBond();
+                return (result ? 0 : -1);
             }
-            return (result ? 0 : -1);
         }
 
         public int connectToGatt() {
@@ -166,24 +174,18 @@ public class LeService extends Service {
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private class LeScanCallback  extends ScanCallback {
 
-        /**
-         * 扫描结果的回调，每次扫描到一个设备，就调用一次。
-         * @param callbackType
-         * @param result
-         */
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
 
-
             if(result != null){
                 //此处，我们尝试连接MI 设备
-
                 Log.d(TAG, "onScanResult DeviceName : " + result.getDevice().getName() + " DeviceAddress : " + result.getDevice().getAddress());
+
                 if (result.getDevice().getName() != null && mTargetDeviceName.equals(result.getDevice().getName())) {
                     //扫描到我们想要的设备后，立即停止扫描
                     mScanning = false;
                     mTarget = result.getDevice();
-//                    result.getDevice().connectGatt(LeService.this, true, mLeGattCallback);
+                    notifyUI("state", mTarget.getAddress());
                     mBluetoothLeScanner.stopScan(mScanCallback);
                 }
             }
@@ -202,7 +204,7 @@ public class LeService extends Service {
                 gatt.discoverServices();
                 mGatt = gatt;
 
-                notifyUI("state", gatt.getDevice().getAddress());
+                notifyUI("state", "1");
             }
             else if(newState == 0){
                 mGatt = null;
