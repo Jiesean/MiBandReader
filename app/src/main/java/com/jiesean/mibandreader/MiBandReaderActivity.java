@@ -55,6 +55,7 @@ public class MiBandReaderActivity extends AppCompatActivity {
                     String deviceAddress = intent.getStringExtra("state");
                     mDisplayStateTV.append("扫描到目标设备： " + deviceAddress + "\n");
                     mBondBtn.setEnabled(true);
+                    mScanBtn.setEnabled(false);
                 }
             }
             else if (intent.getAction().equals("step")){
@@ -66,6 +67,7 @@ public class MiBandReaderActivity extends AppCompatActivity {
             else if(intent.getAction().equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)){
                 mDisplayStateTV.append("绑定目标设备 "+"\n");
                 mConnectBtn.setEnabled(true);
+                mBondBtn.setEnabled(false);
             }
         }
     };
@@ -138,12 +140,20 @@ public class MiBandReaderActivity extends AppCompatActivity {
             mService.startAlert();
         }
         if (view.getId() == R.id.bond_btn) {
-            mService.bondTarget();
+            int result = mService.bondTarget();
+            if (result == 1) {
+                mDisplayStateTV.append("绑定目标设备 "+"\n");
+                mConnectBtn.setEnabled(true);
+                mBondBtn.setEnabled(false);
+            }
+            else if (result == -1){
+                mDisplayStateTV.append("绑定失败 "+"\n");
+            }
         }
         if (view.getId() == R.id.vibrate_btn) {
             mService.vibrateWithoutLed();
         }
-        if (view.getId() == R.id.bond_btn) {
+        if (view.getId() == R.id.vibrate_led_btn) {
             mService.vibrateWithLed();
         }
         if (view.getId() == R.id.connect_btn) {
@@ -186,6 +196,8 @@ public class MiBandReaderActivity extends AppCompatActivity {
         mScanBtn.setEnabled(!enable);
         mVibrateBtn.setEnabled(enable);
         mVibrateLedBtn.setEnabled(enable);
-        mConnectBtn.setEnabled(enable);
+        mConnectBtn.setEnabled(!enable);
+
+
     }
 }

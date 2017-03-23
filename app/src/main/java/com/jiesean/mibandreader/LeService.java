@@ -136,7 +136,7 @@ public class LeService extends Service {
         public void vibrateWithoutLed(){
             Log.d(TAG, "vibrateWithoutLed : " );
 
-            writeCharacteristic(alertChar, Profile.VIBRATION_WITH_LED);
+            writeCharacteristic(alertChar, Profile.VIBRATION_WITHOUT_LED);
 
         }
 
@@ -273,11 +273,6 @@ public class LeService extends Service {
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             Log.d(TAG, "onCharacteristicWrite UUID: " + characteristic.getUuid() + "state : " + status);
 
-            if (characteristic == controlPointChar) {
-                writeCharacteristic(vibrationChar, Profile.VIBRATE_MODE[mColorIndex%2]);
-
-                Log.d(TAG,"Vibrate Mode : " + mColorIndex%2);
-            }
         }
 
         @Override
