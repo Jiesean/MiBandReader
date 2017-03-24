@@ -11,121 +11,121 @@
     tools:context="com.jiesean.mibandreader.MiBandReaderActivity">
 
     <TextView
-        android:text="电量"
+        android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/textView2"
         android:layout_marginStart="30dp"
         android:layout_marginTop="10dp"
-        android:id="@+id/textView3"
-        android:layout_below="@+id/textView2"
-        android:layout_alignParentStart="true" />
+        android:text="电量" />
 
     <TextView
-        android:text="步数"
+        android:id="@+id/textView4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textView3"
         android:layout_alignStart="@+id/textView3"
+        android:layout_below="@+id/textView3"
         android:layout_marginTop="10dp"
-        android:id="@+id/textView4" />
+        android:text="步数" />
 
     <TextView
+        android:id="@+id/device_info_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/textView2"
         android:layout_alignParentEnd="true"
-        android:id="@+id/device_info_tv" />
+        android:layout_alignTop="@+id/textView2" />
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/textView3"
         android:id="@+id/bettery_info_tv"
-        android:layout_alignParentRight="true" />
-
-    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/textView4"
         android:layout_alignParentRight="true"
-        android:id="@+id/step_info_tv" />
+        android:layout_alignTop="@+id/textView3" />
 
     <TextView
+        android:id="@+id/step_info_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/textView4" />
+
+    <TextView
+        android:id="@+id/diaplay_state_tv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/diaplay_state_tv"
+        android:layout_alignParentBottom="true"
         android:layout_below="@id/step_info_tv"
         android:layout_marginTop="10dp"
         android:layout_toStartOf="@+id/vibrate_led_btn"
-        android:textSize="12sp"
-        android:textColor="@android:color/darker_gray"
         android:scrollbars="vertical"
-        android:layout_alignParentBottom="true" />
+        android:textColor="@android:color/darker_gray"
+        android:textSize="12sp" />
 
     <TextView
-        android:text="设备名称"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:id="@+id/textView2"
-        android:layout_alignParentTop="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
-        android:layout_marginStart="14dp" />
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="14dp"
+        android:text="设备名称" />
 
     <Button
-        android:text="Scan"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:id="@+id/scan_btn"
-        android:onClick="handleClickEvent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
         android:layout_alignTop="@+id/diaplay_state_tv"
-        android:layout_alignParentEnd="true" />
+        android:onClick="handleClickEvent"
+        android:text="Scan" />
 
     <Button
-        android:text="Bond"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:id="@+id/bond_btn"
-        android:onClick="handleClickEvent"
-        android:layout_marginTop="13dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
         android:layout_below="@+id/scan_btn"
-        android:layout_alignParentEnd="true" />
+        android:layout_marginTop="13dp"
+        android:onClick="handleClickEvent"
+        android:text="Bond" />
 
     <Button
-        android:text="vibrate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:id="@+id/vibrate_btn"
-        android:onClick="handleClickEvent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
         android:layout_below="@+id/alert_btn"
-        android:layout_alignParentEnd="true" />
+        android:onClick="handleClickEvent"
+        android:text="vibrate" />
 
     <Button
-        android:text="Alert"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:id="@+id/alert_btn"
-        android:onClick="handleClickEvent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
         android:layout_below="@+id/bond_btn"
-        android:layout_alignParentRight="true" />
+        android:onClick="handleClickEvent"
+        android:text="Alert" />
 
     <Button
-        android:text="Vibrate_Led"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:id="@+id/vibrate_led_btn"
-        android:onClick="handleClickEvent"
-        android:layout_marginTop="12dp"
-        android:layout_below="@+id/vibrate_btn"
-        android:layout_alignParentEnd="true" />
-
-    <Button
-        android:text="Connect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/connect_btn"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/vibrate_btn"
+        android:layout_marginTop="12dp"
         android:onClick="handleClickEvent"
-        android:layout_marginTop="14dp"
+        android:text="Vibrate_Led" />
+
+    <Button
+        android:id="@+id/connect_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
         android:layout_below="@+id/vibrate_led_btn"
-        android:layout_alignParentEnd="true" />
+        android:layout_marginTop="14dp"
+        android:onClick="handleClickEvent"
+        android:text="Connect" />
 
 </RelativeLayout>

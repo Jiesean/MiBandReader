@@ -80,7 +80,7 @@ public class LeService extends Service {
      * 继承Binder类，实现localbinder,为activity提供操作接口
      */
     public class LocalBinder extends Binder {
-        public boolean initBluetooth(){
+        public boolean initBluetooth() {
             Log.d(TAG, "initBluetooth");
 
             //init bluetoothadapter.api 21 above
@@ -88,8 +88,7 @@ public class LeService extends Service {
             mBluetoothAdapter = mBluetoothManager.getAdapter();
             if (mBluetoothAdapter == null) {
                 return false;
-            }
-            else if (mBluetoothAdapter.getState() == BluetoothAdapter.STATE_OFF) {
+            } else if (mBluetoothAdapter.getState() == BluetoothAdapter.STATE_OFF) {
                 boolean bluetoothState = mBluetoothAdapter.enable();
                 return bluetoothState;
             }
@@ -97,7 +96,7 @@ public class LeService extends Service {
         }
 
         @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-        public boolean initLeScanner(){
+        public boolean initLeScanner() {
             Log.d(TAG, "initLeScanner");
 
             mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
@@ -121,40 +120,39 @@ public class LeService extends Service {
                         Log.d(TAG, "Stop Scan Time Out");
                         mScanning = false;
                         mBluetoothLeScanner.stopScan(mScanCallback);
-                        notifyUI("state","3");
+                        notifyUI("state", "3");
                     }
                 }
             }, SCAN_PERIOD);
         }
 
-        public void startAlert(){
-            Log.d(TAG, "startLeScan extent: " );
+        public void startAlert() {
+            Log.d(TAG, "startLeScan extent: ");
 
             if (mGatt != null) {
-                byte[] value ={(byte)0x02};
-                mCommandPool.addCommand(CommandPool.Type.write,value,alertChar);
+                byte[] value = {(byte) 0x02};
+                mCommandPool.addCommand(CommandPool.Type.write, value, alertChar);
             }
         }
 
-        public void vibrateWithoutLed(){
-            Log.d(TAG, "vibrateWithoutLed : " );
+        public void vibrateWithoutLed() {
+            Log.d(TAG, "vibrateWithoutLed : ");
 
-            mCommandPool.addCommand(CommandPool.Type.write,Profile.VIBRATION_WITHOUT_LED,vibrationChar);
+            mCommandPool.addCommand(CommandPool.Type.write, Profile.VIBRATION_WITHOUT_LED, vibrationChar);
         }
 
-        public void vibrateWithLed(){
-            Log.d(TAG, "vibrateWithLed : " );
+        public void vibrateWithLed() {
+            Log.d(TAG, "vibrateWithLed : ");
 
-            mCommandPool.addCommand(CommandPool.Type.write,Profile.VIBRATION_WITH_LED,vibrationChar);
+            mCommandPool.addCommand(CommandPool.Type.write, Profile.VIBRATION_WITH_LED, vibrationChar);
         }
 
         public int bondTarget() {
             if (mTarget == null) {
                 return -1;
-            }else{
+            } else {
                 boolean result = mBluetoothAdapter.getBondedDevices().contains(mTarget);
                 if (result) {
-                    System.out.println("*************");
                     return 1;// 已经绑定
                 }
                 result = mTarget.createBond();
@@ -175,12 +173,12 @@ public class LeService extends Service {
      * LE设备扫描结果返回
      */
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private class LeScanCallback  extends ScanCallback {
+    private class LeScanCallback extends ScanCallback {
 
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
 
-            if(result != null){
+            if (result != null) {
                 //此处，我们尝试连接MI 设备
                 Log.d(TAG, "onScanResult DeviceName : " + result.getDevice().getName() + " DeviceAddress : " + result.getDevice().getAddress());
 
@@ -193,7 +191,7 @@ public class LeService extends Service {
 
                     boolean bondState = mBluetoothAdapter.getBondedDevices().contains(mTarget);
                     if (bondState) {
-                        notifyUI("state" , 6+"");
+                        notifyUI("state", 6 + "");
                     }
                 }
             }
@@ -216,8 +214,7 @@ public class LeService extends Service {
                 thread.start();
 
                 notifyUI("state", "1");
-            }
-            else if(newState == 0){
+            } else if (newState == 0) {
                 mGatt = null;
 
                 notifyUI("state", "0");
@@ -239,7 +236,7 @@ public class LeService extends Service {
                     List<BluetoothGattCharacteristic> charc = bluetoothGattService.getCharacteristics();
 
                     for (BluetoothGattCharacteristic charac : charc) {
-                        if (charac.getUuid().equals(Profile.IMMIDATE_ALERT_CHAR_UUID) ) {
+                        if (charac.getUuid().equals(Profile.IMMIDATE_ALERT_CHAR_UUID)) {
                             Log.d(TAG, "alertChar found!");
                             //设备 震动特征值
                             alertChar = charac;
@@ -248,16 +245,16 @@ public class LeService extends Service {
                             Log.d(TAG, "stepchar found!");
                             //设备 步数
                             stepChar = charac;
-                            mCommandPool.addCommand(CommandPool.Type.setNotification, null,charac);
+                            mCommandPool.addCommand(CommandPool.Type.setNotification, null, charac);
 
-                            notifyUI("state","4");
+                            notifyUI("state", "4");
                         }
-                        if(charac.getUuid().equals(Profile.BATTERY_CHAR_UUID)){
+                        if (charac.getUuid().equals(Profile.BATTERY_CHAR_UUID)) {
                             Log.d(TAG, "battery found!");
                             batteryChar = charac;
 
-                            mCommandPool.addCommand(CommandPool.Type.read, null,charac);
-                            mCommandPool.addCommand(CommandPool.Type.setNotification, null,charac);
+                            mCommandPool.addCommand(CommandPool.Type.read, null, charac);
+                            mCommandPool.addCommand(CommandPool.Type.setNotification, null, charac);
                         }
                         if (charac.getUuid().equals(Profile.CONTROL_POINT_CHAR_UUID)) {
                             Log.d(TAG, "control point found!");
@@ -278,13 +275,12 @@ public class LeService extends Service {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             Log.d(TAG, "onCharacteristicChanged UUID : " + characteristic.getUuid());
-            if(characteristic == stepChar){
+            if (characteristic == stepChar) {
 
                 StepParser parser = new StepParser(characteristic.getValue());
                 notifyUI("step", parser.getStepNum() + "");
             }
-            if (characteristic == batteryChar){
-                System.out.println("************************************shuahdush");
+            if (characteristic == batteryChar) {
                 BatteryInfoParser parser = new BatteryInfoParser(characteristic.getValue());
                 notifyUI("battery", parser.getLevel() + "");
             }
@@ -304,7 +300,7 @@ public class LeService extends Service {
 
             if (characteristic.getUuid().equals(Profile.BATTERY_CHAR_UUID)) {
                 BatteryInfoParser parser = new BatteryInfoParser(characteristic.getValue());
-                notifyUI("battery", parser.getLevel() + "|" + parser.getStatusToString() );
+                notifyUI("battery", parser.getLevel() + "|" + parser.getStatusToString());
 
             }
         }
@@ -313,18 +309,15 @@ public class LeService extends Service {
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             Log.d(TAG, "onDescriptorWrite");
             mCommandPool.onCommandCallbackComplete();
-//            gatt.readCharacteristic(batteryChar);
-
         }
     }
 
-    private void notifyUI(String type, String data){
+    private void notifyUI(String type, String data) {
         intent = new Intent();
         intent.setAction(type);
         intent.putExtra(type, data);
         sendBroadcast(intent);
     }
-
 
 
 }

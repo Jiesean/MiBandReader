@@ -19,7 +19,7 @@ public class MiBandReaderActivity extends AppCompatActivity {
 
     private String TAG = "MiBandReaderActivity";
 
-    private TextView mDisplayStateTV ;
+    private TextView mDisplayStateTV;
     private TextView mStepTV;
     private TextView mDeviceInfoTV;
     private TextView mBatteryInfoTV;
@@ -38,46 +38,38 @@ public class MiBandReaderActivity extends AppCompatActivity {
 
             if (intent.getAction().equals("state")) {
 
-                if(intent.getStringExtra("state").equals("0")){//断开连接
+                if (intent.getStringExtra("state").equals("0")) {//断开连接
                     mDisplayStateTV.append("断开连接\n");
                     updateConnectionStateUI(false);
                 }
-                if(intent.getStringExtra("state").equals("1")){//连接成功
+                if (intent.getStringExtra("state").equals("1")) {//连接成功
                     mDisplayStateTV.append("连接到目标设备\n");
                     updateConnectionStateUI(true);
-                }
-                else if (intent.getStringExtra("state").equals("3")) {//扫描超时
+                } else if (intent.getStringExtra("state").equals("3")) {//扫描超时
                     mDisplayStateTV.append("扫描超时，重新扫描\n");
-                }
-                else if (intent.getStringExtra("state").equals("4")) {//开启实时计步通知
+                } else if (intent.getStringExtra("state").equals("4")) {//开启实时计步通知
                     mDisplayStateTV.append("开始计步\n");
-                }
-                else if (intent.getStringExtra("state").equals("6")) {//开启实时计步通知
+                } else if (intent.getStringExtra("state").equals("6")) {//开启实时计步通知
                     mDisplayStateTV.append("目标设备已配对\n");
                     mBondBtn.setEnabled(false);
                     mConnectBtn.setEnabled(true);
-                }
-                else{
+                } else {
                     String deviceAddress = intent.getStringExtra("state");
                     mDisplayStateTV.append("扫描到目标设备： " + deviceAddress + "\n");
                     mBondBtn.setEnabled(true);
                     mScanBtn.setEnabled(false);
                 }
-            }
-            else if (intent.getAction().equals("step")){
+            } else if (intent.getAction().equals("step")) {
                 mStepTV.setText(intent.getStringExtra("step"));
-            }
-            else if (intent.getAction().equals("battery")){
+            } else if (intent.getAction().equals("battery")) {
                 mBatteryInfoTV.setText(intent.getStringExtra("battery"));
-            }
-            else if(intent.getAction().equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)){
-                mDisplayStateTV.append("绑定目标设备 "+"\n");
+            } else if (intent.getAction().equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)) {
+                mDisplayStateTV.append("绑定目标设备 " + "\n");
                 mConnectBtn.setEnabled(true);
                 mBondBtn.setEnabled(false);
             }
         }
     };
-
 
 
     //service connection
@@ -89,7 +81,7 @@ public class MiBandReaderActivity extends AppCompatActivity {
             mService = (LeService.LocalBinder) service;
 
             if (mService != null) {
-               initBluetooth();
+                initBluetooth();
             }
         }
 
@@ -144,7 +136,7 @@ public class MiBandReaderActivity extends AppCompatActivity {
         unbindService(mServiceConnection);
     }
 
-    public void handleClickEvent(View view){
+    public void handleClickEvent(View view) {
         if (view.getId() == R.id.scan_btn) {
             mService.startLeScan();
         }
@@ -154,12 +146,11 @@ public class MiBandReaderActivity extends AppCompatActivity {
         if (view.getId() == R.id.bond_btn) {
             int result = mService.bondTarget();
             if (result == 1) {
-                mDisplayStateTV.append("开始目标设备 "+"\n");
+                mDisplayStateTV.append("开始目标设备 " + "\n");
                 mConnectBtn.setEnabled(true);
                 mBondBtn.setEnabled(false);
-            }
-            else if (result == -1){
-                mDisplayStateTV.append("绑定失败 "+"\n");
+            } else if (result == -1) {
+                mDisplayStateTV.append("绑定失败 " + "\n");
             }
         }
         if (view.getId() == R.id.vibrate_btn) {
@@ -175,12 +166,12 @@ public class MiBandReaderActivity extends AppCompatActivity {
 
     }
 
-    private void initBluetooth(){
+    private void initBluetooth() {
 
         boolean bluetoothStatte = mService.initBluetooth();
         if (bluetoothStatte == false) {
             mDisplayStateTV.setText("您的设备不支持蓝牙！\n");
-        }else{
+        } else {
             boolean leScannerState = mService.initLeScanner();
             if (leScannerState == true) {
                 mDisplayStateTV.setText("蓝牙已就绪！\n");
@@ -197,9 +188,9 @@ public class MiBandReaderActivity extends AppCompatActivity {
         return intentFilter;
     }
 
-    private void updateConnectionStateUI(boolean enable){
+    private void updateConnectionStateUI(boolean enable) {
 
-        String deviceName = enable?("MI"):("未连接");
+        String deviceName = enable ? ("MI") : ("未连接");
         mDeviceInfoTV.setText(deviceName);
 
         mBatteryInfoTV.setText("0|UNKNOWN");

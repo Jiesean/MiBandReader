@@ -41,6 +41,6 @@ public class Profile {
     //vibrate mode
     public static final byte[] VIBRATION_WITH_LED = {1}; //0x00和0x03都是震动两下，伴随着LED
     public static final byte[] VIBRATION_WITHOUT_LED = {4};//震动两下，无LED
-    public static final byte[][] VIBRATE_MODE = {VIBRATION_WITH_LED, VIBRATION_WITHOUT_LED };
+    public static final byte[][] VIBRATE_MODE = {VIBRATION_WITH_LED, VIBRATION_WITHOUT_LED};
 
 }
