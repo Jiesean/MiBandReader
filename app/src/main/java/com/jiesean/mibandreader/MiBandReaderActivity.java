@@ -52,6 +52,11 @@ public class MiBandReaderActivity extends AppCompatActivity {
                 else if (intent.getStringExtra("state").equals("4")) {//开启实时计步通知
                     mDisplayStateTV.append("开始计步\n");
                 }
+                else if (intent.getStringExtra("state").equals("6")) {//开启实时计步通知
+                    mDisplayStateTV.append("目标设备已配对\n");
+                    mBondBtn.setEnabled(false);
+                    mConnectBtn.setEnabled(true);
+                }
                 else{
                     String deviceAddress = intent.getStringExtra("state");
                     mDisplayStateTV.append("扫描到目标设备： " + deviceAddress + "\n");
@@ -135,6 +140,7 @@ public class MiBandReaderActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
         unbindService(mServiceConnection);
     }
 
@@ -148,7 +154,7 @@ public class MiBandReaderActivity extends AppCompatActivity {
         if (view.getId() == R.id.bond_btn) {
             int result = mService.bondTarget();
             if (result == 1) {
-                mDisplayStateTV.append("绑定目标设备 "+"\n");
+                mDisplayStateTV.append("开始目标设备 "+"\n");
                 mConnectBtn.setEnabled(true);
                 mBondBtn.setEnabled(false);
             }

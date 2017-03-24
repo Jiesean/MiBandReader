@@ -153,7 +153,8 @@ public class LeService extends Service {
                 return -1;
             }else{
                 boolean result = mBluetoothAdapter.getBondedDevices().contains(mTarget);
-                if (result == true) {
+                if (result) {
+                    System.out.println("*************");
                     return 1;// 已经绑定
                 }
                 result = mTarget.createBond();
@@ -189,6 +190,11 @@ public class LeService extends Service {
                     mTarget = result.getDevice();
                     notifyUI("state", mTarget.getAddress());
                     mBluetoothLeScanner.stopScan(mScanCallback);
+
+                    boolean bondState = mBluetoothAdapter.getBondedDevices().contains(mTarget);
+                    if (bondState) {
+                        notifyUI("state" , 6+"");
+                    }
                 }
             }
         }
