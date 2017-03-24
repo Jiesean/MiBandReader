@@ -284,6 +284,7 @@ public class LeService extends Service {
                 notifyUI("step", parser.getStepNum() + "");
             }
             if (characteristic == batteryChar){
+                System.out.println("************************************shuahdush");
                 BatteryInfoParser parser = new BatteryInfoParser(characteristic.getValue());
                 notifyUI("battery", parser.getLevel() + "");
             }
