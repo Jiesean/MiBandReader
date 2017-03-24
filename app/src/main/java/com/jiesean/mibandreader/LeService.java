@@ -132,7 +132,6 @@ public class LeService extends Service {
 
             if (mGatt != null) {
                 byte[] value ={(byte)0x02};
-//                writeCharacteristic(alertChar, value);
                 mCommandPool.addCommand(CommandPool.Type.write,value,alertChar);
             }
         }
@@ -140,14 +139,12 @@ public class LeService extends Service {
         public void vibrateWithoutLed(){
             Log.d(TAG, "vibrateWithoutLed : " );
 
-//            writeCharacteristic(alertChar, Profile.VIBRATION_WITHOUT_LED);
             mCommandPool.addCommand(CommandPool.Type.write,Profile.VIBRATION_WITHOUT_LED,vibrationChar);
         }
 
         public void vibrateWithLed(){
             Log.d(TAG, "vibrateWithLed : " );
 
-//            writeCharacteristic(alertChar, Profile.VIBRATION_WITH_LED);
             mCommandPool.addCommand(CommandPool.Type.write,Profile.VIBRATION_WITH_LED,vibrationChar);
         }
 
@@ -245,17 +242,15 @@ public class LeService extends Service {
                             Log.d(TAG, "stepchar found!");
                             //设备 步数
                             stepChar = charac;
-//                            boolean result = enableCharacNotification(gatt ,true, charac);
                             mCommandPool.addCommand(CommandPool.Type.setNotification, null,charac);
 
-//                            if (result){
-                                notifyUI("state","4");
-//                            }
+                            notifyUI("state","4");
                         }
                         if(charac.getUuid().equals(Profile.BATTERY_CHAR_UUID)){
                             Log.d(TAG, "battery found!");
                             batteryChar = charac;
 
+                            mCommandPool.addCommand(CommandPool.Type.read, null,charac);
                             mCommandPool.addCommand(CommandPool.Type.setNotification, null,charac);
                         }
                         if (charac.getUuid().equals(Profile.CONTROL_POINT_CHAR_UUID)) {
@@ -292,16 +287,17 @@ public class LeService extends Service {
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             Log.d(TAG, "onCharacteristicWrite UUID: " + characteristic.getUuid() + "state : " + status);
-
+            mCommandPool.onCommandCallbackComplete();
         }
 
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             Log.d(TAG, "onCharacteristicRead UUID : " + characteristic.getUuid());
+            mCommandPool.onCommandCallbackComplete();
 
             if (characteristic.getUuid().equals(Profile.BATTERY_CHAR_UUID)) {
                 BatteryInfoParser parser = new BatteryInfoParser(characteristic.getValue());
-                notifyUI("battery", parser.getLevel() + "");
+                notifyUI("battery", parser.getLevel() + "|" + parser.getStatusToString() );
 
             }
         }
@@ -309,6 +305,7 @@ public class LeService extends Service {
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             Log.d(TAG, "onDescriptorWrite");
+            mCommandPool.onCommandCallbackComplete();
 //            gatt.readCharacteristic(batteryChar);
 
         }
@@ -321,27 +318,6 @@ public class LeService extends Service {
         sendBroadcast(intent);
     }
 
-//    private boolean enableCharacNotification(BluetoothGatt gatt,boolean enable, BluetoothGattCharacteristic characteristic){
-//        Log.d(TAG,"enableCharacNotification char : " + characteristic);
-//
-//        if (gatt == null ||characteristic == null)
-//            return false;
-//        if (!gatt.setCharacteristicNotification(characteristic, enable))
-//            return false;
-//            BluetoothGattDescriptor clientConfig = characteristic.getDescriptor(Profile.notificationDesUUID);
-//        if (clientConfig == null)
-//            return false;
-//        if (enable) {
-//            clientConfig.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-//        } else {
-//            clientConfig.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
-//        }
-//        return gatt.writeDescriptor(clientConfig);
-//    }
 
-//    private void writeCharacteristic(BluetoothGattCharacteristic characteristic,byte[] command){
-//        characteristic.setValue(command);
-//        mGatt.writeCharacteristic(characteristic);
-//    }
 
 }

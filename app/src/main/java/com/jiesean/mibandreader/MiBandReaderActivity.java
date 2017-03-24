@@ -196,7 +196,7 @@ public class MiBandReaderActivity extends AppCompatActivity {
         String deviceName = enable?("MI"):("未连接");
         mDeviceInfoTV.setText(deviceName);
 
-        mBatteryInfoTV.setText("0");
+        mBatteryInfoTV.setText("0|UNKNOWN");
         mStepTV.setText("0");
         mAlertBtn.setEnabled(enable);
         mScanBtn.setEnabled(!enable);

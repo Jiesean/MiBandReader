@@ -28,6 +28,9 @@ public class CommandPool implements Runnable{
     private LinkedList<Command> pool ;
     private BluetoothGattCharacteristic characteristic;
     private int index = 0 ;
+    private boolean isCompleted = false;
+    private boolean isDone = false ;
+    private Command commandToExc;
 
     public CommandPool(Context context, BluetoothGatt gatt){
         this.gatt = gatt;
@@ -43,30 +46,31 @@ public class CommandPool implements Runnable{
     @Override
     public void run() {
         while(true){
-            System.out.println(pool.size());
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             if (pool.peek() == null)
             {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                commandToExc = null;
                 continue;
             }
-
-            Command commandToExc = pool.peek();
-            boolean result = execute(commandToExc.getType(),  commandToExc.getValue(), commandToExc.getTarget());
-            if (result) {
-                pool.poll();
+            else if (!isDone){
+                commandToExc= pool.peek();
+                isDone = execute(commandToExc.getType(),  commandToExc.getValue(), commandToExc.getTarget());
+                System.out.println(commandToExc.getId() + "命令结果" + isDone);
             }
-            else{
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            else if (isCompleted && isDone) {
+                System.out.println( commandToExc.getId() + "命令执行完成");
+
+                pool.poll();
+                isCompleted = false;
+                isDone = false;
             }
         }
+
+
     }
 
     private boolean execute(Type type ,byte[] value, BluetoothGattCharacteristic target){
@@ -113,6 +117,10 @@ public class CommandPool implements Runnable{
         return result;
     }
 
+    public void onCommandCallbackComplete(){
+        isCompleted = true;
+    }
+
     private class Command{
         private int id ;
         private boolean state = false ;
@@ -125,7 +133,10 @@ public class CommandPool implements Runnable{
             this.target = target;
             this.type = type;
             id = index;
+            System.out.println(index+ "命令创建，UUID: " + target.getUuid().toString());
+
             index ++;
+
         }
 
         int getId(){

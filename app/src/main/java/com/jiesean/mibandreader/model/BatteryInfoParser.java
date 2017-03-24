@@ -79,6 +79,9 @@ public class BatteryInfoParser {
     public Status getStatus() {
         return status;
     }
+    public String getStatusToString(){
+        return status.toString();
+    }
 
     /**
      * 上一次的充电时间

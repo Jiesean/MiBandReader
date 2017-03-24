@@ -34,21 +34,20 @@
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/textView2"
         android:layout_alignParentEnd="true"
-        android:layout_marginEnd="84dp"
         android:id="@+id/device_info_tv" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/textView3"
-        android:layout_alignEnd="@+id/device_info_tv"
-        android:id="@+id/bettery_info_tv" />
+        android:id="@+id/bettery_info_tv"
+        android:layout_alignParentRight="true" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/textView4"
-        android:layout_alignStart="@+id/bettery_info_tv"
+        android:layout_alignParentRight="true"
         android:id="@+id/step_info_tv" />
 
     <TextView
@@ -92,23 +91,22 @@
         android:layout_alignParentEnd="true" />
 
     <Button
-        android:text="Alert"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/alert_btn"
-        android:onClick="handleClickEvent"
-        android:layout_marginTop="10dp"
-        android:layout_below="@+id/bond_btn"
-        android:layout_alignStart="@+id/step_info_tv" />
-
-    <Button
         android:text="vibrate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/vibrate_btn"
         android:onClick="handleClickEvent"
         android:layout_below="@+id/alert_btn"
-        android:layout_alignStart="@+id/alert_btn" />
+        android:layout_alignParentEnd="true" />
+
+    <Button
+        android:text="Alert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/alert_btn"
+        android:onClick="handleClickEvent"
+        android:layout_below="@+id/bond_btn"
+        android:layout_alignParentRight="true" />
 
     <Button
         android:text="Vibrate_Led"
