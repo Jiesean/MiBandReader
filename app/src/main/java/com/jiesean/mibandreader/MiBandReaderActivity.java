@@ -1,5 +1,6 @@
 package com.jiesean.mibandreader;
 
+import android.Manifest;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -7,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -30,6 +33,7 @@ public class MiBandReaderActivity extends AppCompatActivity {
     private Button mVibrateLedBtn;
     private Button mConnectBtn;
     private Intent serviceIntent;
+    private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
 
     BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -64,9 +68,11 @@ public class MiBandReaderActivity extends AppCompatActivity {
             } else if (intent.getAction().equals("battery")) {
                 mBatteryInfoTV.setText(intent.getStringExtra("battery"));
             } else if (intent.getAction().equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)) {
-                mDisplayStateTV.append("绑定目标设备 " + "\n");
-                mConnectBtn.setEnabled(true);
-                mBondBtn.setEnabled(false);
+                if (intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, -1 ) == BluetoothDevice.BOND_BONDED){
+                    mDisplayStateTV.append("绑定目标设备 " + "\n");
+                    mConnectBtn.setEnabled(true);
+                    mBondBtn.setEnabled(false);
+                }
             }
         }
     };
@@ -95,6 +101,13 @@ public class MiBandReaderActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mi_band_reader);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Android M Permission check
+            if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
+            }
+        }
 
         mDisplayStateTV = (TextView) findViewById(R.id.diaplay_state_tv);
         mStepTV = (TextView) findViewById(R.id.step_info_tv);
@@ -202,5 +215,16 @@ public class MiBandReaderActivity extends AppCompatActivity {
         mConnectBtn.setEnabled(!enable);
 
 
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_COARSE_LOCATION:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // TODO request success
+                }
+                break;
+        }
     }
 }
